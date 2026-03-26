@@ -7,7 +7,7 @@ export default defineConfig({
   root: '.',
   base: './',
   build: {
-    outDir: 'dist',
+    outDir: 'build',
     emptyOutDir: true,
   },
   resolve: {

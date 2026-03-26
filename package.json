@@ -40,7 +40,7 @@
     "productName": "News Ticker",
     "files": [
       "electron/**/*",
-      "dist/**/*"
+      "build/**/*"
     ],
     "mac": {
       "category": "public.app-category.news",
