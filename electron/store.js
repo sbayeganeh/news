@@ -9,6 +9,18 @@ const GENRES = [
   'Health',
   'World',
   'Environment',
+  'Weather',
+  'Automotive',
+  'Travel',
+  'Food',
+  'Education',
+  'Real Estate',
+  'Space',
+  'AI & Robotics',
+  'Gaming',
+  'Fashion',
+  'Crypto',
+  'Military',
 ];
 
 const schema = {

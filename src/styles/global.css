@@ -7,7 +7,7 @@
 html, body, #root {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   background: transparent;
   font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -17,11 +17,15 @@ html, body, #root {
   position: relative;
   width: 100%;
   height: 60px;
-  background: rgba(12, 12, 14, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(12, 12, 14, 0.94);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35),
+              0 1px 3px rgba(0, 0, 0, 0.2),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   -webkit-app-region: drag;
   user-select: none;
 }
@@ -38,7 +42,9 @@ html, body, #root {
   padding: 0 8px;
   background: rgba(255, 255, 255, 0.04);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px 0 0 14px;
   cursor: pointer;
+  overflow: visible;
 }
 
 .genre-btn {
@@ -68,54 +74,125 @@ html, body, #root {
   text-transform: uppercase;
 }
 
+.genre-btn .chevron {
+  font-size: 10px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.5;
+}
+
+.genre-btn.open .chevron {
+  transform: rotate(180deg);
+}
+
 .genre-dropdown {
   position: absolute;
-  top: 60px;
+  top: calc(100% + 6px);
   left: 0;
-  min-width: 200px;
-  background: rgba(22, 22, 26, 0.98);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 6px 0;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  min-width: 220px;
+  max-height: 420px;
+  background: rgba(20, 20, 24, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5),
+              0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 1000;
-  animation: dropIn 0.15s ease-out;
+  animation: dropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 @keyframes dropIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .genre-dropdown-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 14px;
+  padding: 9px 14px;
   cursor: pointer;
   transition: background 0.15s;
   -webkit-app-region: no-drag;
 }
 
 .genre-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Dropdown Header & Scroll ────────────────────────────── */
+.genre-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+
+.genre-dropdown-header:hover {
   background: rgba(255, 255, 255, 0.06);
+}
+
+.genre-dropdown-header .genre-dropdown-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.genre-dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 2px 12px;
+  flex-shrink: 0;
+}
+
+.genre-dropdown-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px 0;
+}
+
+.genre-dropdown-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.genre-dropdown-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.genre-dropdown-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+.genre-dropdown-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .genre-checkbox {
   width: 16px;
   height: 16px;
-  border-radius: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .genre-checkbox.checked {
   border-color: transparent;
+  transform: scale(1.05);
 }
 
 .genre-checkbox.checked::after {
@@ -145,7 +222,6 @@ html, body, #root {
   height: 100%;
   display: flex;
   align-items: center;
-  -webkit-app-region: no-drag;
   mask-image: linear-gradient(
     to right,
     transparent 0%,
@@ -188,11 +264,12 @@ html, body, #root {
   display: inline-flex;
   align-items: center;
   padding: 0 24px;
-  cursor: pointer;
+  cursor: pointer !important;
   text-decoration: none;
   transition: all 0.2s ease;
   position: relative;
   height: 60px;
+  -webkit-app-region: no-drag;
 }
 
 .headline-item::after {
@@ -224,12 +301,17 @@ html, body, #root {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.5;
+  letter-spacing: 0.8px;
+  opacity: 0.4;
   margin-left: 8px;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: 4px;
   border: 1px solid currentColor;
+  transition: opacity 0.2s;
+}
+
+.headline-item:hover .headline-genre-tag {
+  opacity: 0.65;
 }
 
 /* ── Status Messages ──────────────────────────────────────── */
@@ -243,7 +325,6 @@ html, body, #root {
   font-size: 13px;
   font-weight: 500;
   gap: 10px;
-  -webkit-app-region: no-drag;
 }
 
 .status-message .spinner {
@@ -257,21 +338,6 @@ html, body, #root {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-.progress-bar-container {
-  width: 200px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #4CC9F0, #B5179E);
-  border-radius: 2px;
-  transition: width 0.3s ease;
 }
 
 .error-message {
@@ -297,4 +363,69 @@ html, body, #root {
 .close-btn:hover {
   color: #E63946;
   background: rgba(230, 57, 70, 0.1);
+}
+
+/* ── Drag Handle ─────────────────────────────────────────── */
+.drag-handle {
+  -webkit-app-region: no-drag;
+  flex-shrink: 0;
+  width: 28px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.2s;
+}
+
+.drag-handle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle-icon {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.drag-handle:hover .drag-handle-icon {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Resize Handle ───────────────────────────────────────── */
+.resize-handle {
+  -webkit-app-region: no-drag;
+  flex-shrink: 0;
+  width: 12px;
+  height: 100%;
+  cursor: ew-resize !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0 14px 14px 0;
+  transition: background 0.2s;
+}
+
+.resize-handle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.resize-handle:active {
+  background: rgba(76, 201, 240, 0.15);
+}
+
+.resize-handle-grip {
+  width: 3px;
+  height: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
 }

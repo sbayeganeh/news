@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, shell, screen, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, shell, nativeImage } = require('electron');
 const path = require('path');
 const { initStore, getStore } = require('./store.js');
 
@@ -8,7 +8,10 @@ let newsAggregator = null;
 
 const isDev = !app.isPackaged;
 
+let expectedHeight = 60;
+
 function createWindow() {
+  const { screen } = require('electron');
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
 
   mainWindow = new BrowserWindow({
@@ -20,8 +23,10 @@ function createWindow() {
     transparent: true,
     alwaysOnTop: true,
     skipTaskbar: true,
-    resizable: false,
+    resizable: true,
     hasShadow: false,
+    maximizable: false,
+    minimizable: false,
     focusable: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -29,6 +34,17 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: false,
     },
+  });
+
+  // Intercept all resize attempts — only allow horizontal changes
+  mainWindow.on('will-resize', (event, newBounds) => {
+    event.preventDefault();
+    mainWindow.setBounds({
+      x: newBounds.x,
+      y: newBounds.y,
+      width: Math.max(300, newBounds.width),
+      height: expectedHeight,
+    });
   });
 
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
@@ -83,25 +99,42 @@ function createTray() {
 }
 
 async function initServices() {
-  // Dynamic import for ESM modules
   const { NewsAggregator } = await import('./services/newsAggregator.mjs');
   newsAggregator = new NewsAggregator();
-
-  // Send model status updates to renderer
-  newsAggregator.on('model-status', (status) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      try {
-        mainWindow.webContents.send('model-status', status);
-      } catch {
-        // Window may have been destroyed during send
-      }
-    }
-  });
-
-  await newsAggregator.init();
 }
 
 function setupIPC() {
+  ipcMain.handle('resize-window', (_event, { height }) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      expectedHeight = height;
+      const [width] = mainWindow.getSize();
+      mainWindow.setSize(width, height, true);
+    }
+  });
+
+  ipcMain.handle('get-window-bounds', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const [width, height] = mainWindow.getSize();
+      const [x, y] = mainWindow.getPosition();
+      return { width, height, x, y };
+    }
+    return { width: 800, height: 60, x: 0, y: 0 };
+  });
+
+  ipcMain.handle('resize-window-width', (_event, { width }) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const [, height] = mainWindow.getSize();
+      mainWindow.setSize(Math.max(300, width), height, true);
+    }
+  });
+
+  ipcMain.handle('move-window', (_event, { deltaX, deltaY }) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const [x, y] = mainWindow.getPosition();
+      mainWindow.setPosition(x + deltaX, y + deltaY);
+    }
+  });
+
   ipcMain.handle('get-news', async (_event, genres) => {
     if (!newsAggregator) {
       return { error: 'Services not initialized yet' };
@@ -112,13 +145,6 @@ function setupIPC() {
     } catch (err) {
       return { error: err.message };
     }
-  });
-
-  ipcMain.handle('get-model-status', () => {
-    if (!newsAggregator) {
-      return { status: 'initializing', progress: 0 };
-    }
-    return newsAggregator.getModelStatus();
   });
 
   ipcMain.handle('get-settings', () => {
@@ -155,19 +181,8 @@ app.whenReady().then(async () => {
   createTray();
   setupIPC();
 
-  // Init services asynchronously — don't block window creation
   initServices().catch((err) => {
     console.error('Failed to initialize services:', err);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      try {
-        mainWindow.webContents.send('model-status', {
-          status: 'error',
-          message: err.message,
-        });
-      } catch {
-        // Window may have been destroyed
-      }
-    }
   });
 });
 

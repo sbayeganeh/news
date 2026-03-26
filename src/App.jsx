@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Marquee from './components/Marquee';
 import GenreDropdown from './components/GenreDropdown';
+import ResizeHandle from './components/ResizeHandle';
+import DragHandle from './components/DragHandle';
 import { GENRES } from './utils/genreColors';
 
 const DEFAULT_REFRESH = 600000; // 10 min
@@ -8,11 +10,6 @@ const DEFAULT_REFRESH = 600000; // 10 min
 export default function App() {
   const [headlines, setHeadlines] = useState([]);
   const [enabledGenres, setEnabledGenres] = useState(GENRES);
-  const [modelStatus, setModelStatus] = useState({
-    status: 'initializing',
-    progress: 0,
-    message: 'Starting...',
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const refreshTimer = useRef(null);
@@ -27,18 +24,6 @@ export default function App() {
     });
   }, []);
 
-  // Listen to model status updates from main process
-  useEffect(() => {
-    if (!window.electronAPI) return;
-    const cleanup = window.electronAPI.onModelStatus((status) => {
-      setModelStatus(status);
-    });
-    // Also poll once
-    window.electronAPI.getModelStatus().then(setModelStatus);
-    return cleanup;
-  }, []);
-
-  // Fetch news
   const fetchNews = useCallback(async () => {
     if (!window.electronAPI) return;
     setLoading(true);
@@ -48,7 +33,13 @@ export default function App() {
       if (result.error) {
         setError(result.error);
       } else if (result.headlines) {
-        setHeadlines(result.headlines);
+        // Fisher-Yates shuffle so order varies on each load
+        const shuffled = [...result.headlines];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setHeadlines(shuffled);
       }
     } catch (err) {
       setError(err.message);
@@ -57,29 +48,23 @@ export default function App() {
     }
   }, [enabledGenres]);
 
-  // Auto-fetch when model becomes ready or genres change
+  // Fetch on mount and when genres change
   useEffect(() => {
-    if (modelStatus.status === 'ready') {
-      fetchNews();
-    }
-  }, [modelStatus.status, enabledGenres, fetchNews]);
+    fetchNews();
+  }, [fetchNews]);
 
   // Refresh interval
   useEffect(() => {
-    if (modelStatus.status !== 'ready') return;
     refreshTimer.current = setInterval(fetchNews, DEFAULT_REFRESH);
     return () => clearInterval(refreshTimer.current);
-  }, [modelStatus.status, fetchNews]);
+  }, [fetchNews]);
 
   // Listen for force-refresh from tray
   useEffect(() => {
     if (!window.electronAPI) return;
-    return window.electronAPI.onForceRefresh(() => {
-      fetchNews();
-    });
+    return window.electronAPI.onForceRefresh(() => fetchNews());
   }, [fetchNews]);
 
-  // Save genres when changed
   const handleGenresChange = (genres) => {
     setEnabledGenres(genres);
     if (window.electronAPI) {
@@ -87,40 +72,9 @@ export default function App() {
     }
   };
 
-  // Filter headlines by enabled genres
   const filtered = headlines.filter((h) => enabledGenres.includes(h.genre));
 
-  // Render status area
   const renderStatus = () => {
-    if (modelStatus.status === 'downloading') {
-      return (
-        <div className="status-message">
-          <div className="spinner" />
-          <span>Downloading AI model... {modelStatus.progress}%</span>
-          <div className="progress-bar-container">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${modelStatus.progress}%` }}
-            />
-          </div>
-        </div>
-      );
-    }
-    if (modelStatus.status === 'loading' || modelStatus.status === 'initializing') {
-      return (
-        <div className="status-message">
-          <div className="spinner" />
-          <span>{modelStatus.message || 'Loading AI model...'}</span>
-        </div>
-      );
-    }
-    if (modelStatus.status === 'error') {
-      return (
-        <div className="status-message error-message">
-          ⚠ {modelStatus.message || 'Failed to load AI model'}
-        </div>
-      );
-    }
     if (loading && headlines.length === 0) {
       return (
         <div className="status-message">
@@ -136,7 +90,7 @@ export default function App() {
         </div>
       );
     }
-    if (filtered.length === 0 && modelStatus.status === 'ready') {
+    if (filtered.length === 0) {
       return (
         <div className="status-message">
           No headlines yet — fetching news...
@@ -152,6 +106,8 @@ export default function App() {
     <div className="ticker-wrapper">
       <GenreDropdown enabledGenres={enabledGenres} onChange={handleGenresChange} />
       {status || <Marquee headlines={filtered} />}
+      <DragHandle />
+      <ResizeHandle />
     </div>
   );
 }
