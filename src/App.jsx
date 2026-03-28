@@ -106,6 +106,13 @@ export default function App() {
     <div className="ticker-wrapper">
       <GenreDropdown enabledGenres={enabledGenres} onChange={handleGenresChange} />
       {status || <Marquee headlines={filtered} />}
+      <button
+        className="close-btn"
+        title="Quit News Ticker"
+        onClick={() => window.electronAPI?.closeApp()}
+      >
+        ⏻
+      </button>
       <DragHandle />
       <ResizeHandle />
     </div>

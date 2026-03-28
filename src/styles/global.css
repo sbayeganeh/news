@@ -350,19 +350,22 @@ html, body, #root {
   flex-shrink: 0;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 16px;
+  color: #E63946;
+  font-size: 18px;
   cursor: pointer;
   padding: 6px 12px;
   transition: all 0.2s;
   height: 100%;
   display: flex;
   align-items: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  text-shadow: 0 0 8px rgba(230, 57, 70, 0.4);
 }
 
 .close-btn:hover {
-  color: #E63946;
-  background: rgba(230, 57, 70, 0.1);
+  color: #ff1a2e;
+  background: rgba(230, 57, 70, 0.15);
+  text-shadow: 0 0 14px rgba(230, 57, 70, 0.6);
 }
 
 /* ── Drag Handle ─────────────────────────────────────────── */

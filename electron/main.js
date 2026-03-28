@@ -62,14 +62,8 @@ function createWindow() {
 
 function createTray() {
   // Create a simple 16x16 tray icon
-  const icon = nativeImage.createFromBuffer(
-    Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAARklEQVQ4T2NkoBAwUqifYdAb8P9/A0Mi' +
-      'IwMDgyIDA8NERgYGBUIMMMIKkNMMDQwwA4gxAF0/ugHEGICuH8WAUQMGPAwAAADqFhARsOSBAAAAAElF' +
-      'TkSuQmCC',
-      'base64'
-    )
-  );
+  const iconPath = path.join(__dirname, '..', 'assets', 'icon.png');
+  const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
 
   tray = new Tray(icon);
   tray.setToolTip('News Ticker');
@@ -173,6 +167,10 @@ function setupIPC() {
       // Invalid URL, ignore
     }
   });
+
+  ipcMain.handle('close-app', () => {
+    app.quit();
+  });
 }
 
 app.whenReady().then(async () => {
@@ -191,5 +189,5 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (mainWindow === null) createWindow();
+  if (app.isReady() && mainWindow === null) createWindow();
 });

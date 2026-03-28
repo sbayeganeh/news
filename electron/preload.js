@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getWindowBounds: () => ipcRenderer.invoke('get-window-bounds'),
   resizeWindowWidth: (width) => ipcRenderer.invoke('resize-window-width', { width }),
   moveWindow: (deltaX, deltaY) => ipcRenderer.invoke('move-window', { deltaX, deltaY }),
+  closeApp: () => ipcRenderer.invoke('close-app'),
 
   onForceRefresh: (callback) => {
     const handler = () => callback();

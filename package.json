@@ -40,16 +40,22 @@
     "productName": "News Ticker",
     "files": [
       "electron/**/*",
-      "build/**/*"
+      "build/**/*",
+      "assets/icon.png"
     ],
+    "icon": "assets/icon.png",
     "mac": {
+      "icon": "assets/icon.icns",
       "category": "public.app-category.news",
       "target": [
         {
           "target": "dmg",
           "arch": ["x64", "arm64"]
         }
-      ]
+      ],
+      "extendInfo": {
+        "LSUIElement": false
+      }
     },
     "linux": {
       "target": ["AppImage", "deb"],
