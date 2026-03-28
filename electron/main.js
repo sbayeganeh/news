@@ -21,7 +21,7 @@ function createWindow() {
     y: 0,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     skipTaskbar: true,
     resizable: true,
     hasShadow: false,
