@@ -3,6 +3,7 @@ import React, { useCallback, useRef } from 'react';
 export default function DragHandle() {
   const dragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
+  const rafId = useRef(null);
 
   const onMouseDown = useCallback((e) => {
     e.preventDefault();
@@ -14,13 +15,17 @@ export default function DragHandle() {
       const deltaX = e.screenX - lastPos.current.x;
       const deltaY = e.screenY - lastPos.current.y;
       lastPos.current = { x: e.screenX, y: e.screenY };
-      if (window.electronAPI) {
-        window.electronAPI.moveWindow(deltaX, deltaY);
-      }
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      rafId.current = requestAnimationFrame(() => {
+        if (window.electronAPI) {
+          window.electronAPI.moveWindow(deltaX, deltaY);
+        }
+      });
     };
 
     const onMouseUp = () => {
       dragging.current = false;
+      if (rafId.current) cancelAnimationFrame(rafId.current);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };

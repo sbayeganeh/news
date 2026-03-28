@@ -8,6 +8,11 @@ let newsAggregator = null;
 
 const isDev = !app.isPackaged;
 
+// Improve GPU compositing for transparent windows on macOS
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+
 let expectedHeight = 60;
 
 function createWindow() {
@@ -21,7 +26,7 @@ function createWindow() {
     y: 0,
     frame: false,
     transparent: true,
-    alwaysOnTop: false,
+    alwaysOnTop: true,
     skipTaskbar: true,
     resizable: true,
     hasShadow: false,
@@ -33,6 +38,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      backgroundThrottling: false,
     },
   });
 
@@ -47,7 +53,6 @@ function createWindow() {
     });
   });
 
-  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');

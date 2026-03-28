@@ -4,6 +4,7 @@ export default function ResizeHandle() {
   const dragging = useRef(false);
   const startX = useRef(0);
   const startWidth = useRef(0);
+  const rafId = useRef(null);
 
   const onMouseDown = useCallback((e) => {
     e.preventDefault();
@@ -20,13 +21,17 @@ export default function ResizeHandle() {
       if (!dragging.current) return;
       const delta = e.screenX - startX.current;
       const newWidth = Math.max(300, startWidth.current + delta);
-      if (window.electronAPI) {
-        window.electronAPI.resizeWindowWidth(newWidth);
-      }
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      rafId.current = requestAnimationFrame(() => {
+        if (window.electronAPI) {
+          window.electronAPI.resizeWindowWidth(newWidth);
+        }
+      });
     };
 
     const onMouseUp = () => {
       dragging.current = false;
+      if (rafId.current) cancelAnimationFrame(rafId.current);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };
